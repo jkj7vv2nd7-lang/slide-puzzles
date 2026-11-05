@@ -20,8 +20,14 @@
     padding:env(safe-area-inset-top) 12px calc(28px + env(safe-area-inset-bottom));
   }
   .wrap{max-width:560px; margin:0 auto;}
-  header.top{text-align:center; padding:18px 4px 4px;}
-  header.top h1{font-size:1.45rem; margin:0 0 2px; letter-spacing:.04em;}
+  header.top{text-align:center; padding:20px 4px 2px;}
+  header.top h1{
+    font-size:1.6rem; margin:0 0 2px; letter-spacing:.1em; font-weight:bold;
+    background:linear-gradient(100deg,#7a4b12,#c9a227 40%,#8a6414 65%,#c9a227);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#8a6414;
+    text-shadow:0 1px 0 rgba(255,255,255,.4);
+  }
+  header.top .flourish{color:var(--gold); font-size:.8rem; letter-spacing:.6em; margin:0 0 2px;}
   header.top .sub{font-size:.86rem; color:#6d6353; margin:0;}
   .card{
     background:var(--card); border:1px solid var(--line); border-radius:14px;
@@ -123,6 +129,68 @@
   }
   .fanfare{animation:pop .5s ease;}
   @keyframes pop{0%{transform:scale(.92);}60%{transform:scale(1.04);}100%{transform:scale(1);}}
+  /* ---- トップ画面のヒーロー ---- */
+  .hero{
+    position:relative; overflow:hidden; border-radius:18px; margin:14px 0 6px;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(201,162,39,.35), transparent 42%),
+      radial-gradient(circle at 85% 90%, rgba(179,81,47,.28), transparent 45%),
+      linear-gradient(150deg,#26543f 0%,#2e7d5b 55%,#1f4634 100%);
+    border:2px solid #c9a227; box-shadow:0 8px 24px rgba(46,80,50,.35), inset 0 0 0 3px rgba(255,248,225,.15);
+    padding:18px 14px 14px; text-align:center;
+  }
+  .hero .ribbon{
+    display:inline-block; background:linear-gradient(90deg,#b3512f,#cf6a3f,#b3512f);
+    color:#fff8e9; font-size:.8rem; letter-spacing:.14em; padding:3px 16px; border-radius:999px;
+    box-shadow:0 2px 6px rgba(0,0,0,.3); border:1px solid rgba(255,240,200,.7);
+  }
+  .stage{position:relative; height:158px; margin:8px auto 2px; max-width:420px;}
+  .motif{position:absolute; display:flex; align-items:center; justify-content:center; font-weight:bold; color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,.4); box-shadow:0 6px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.4);}
+  .motif.musume{
+    width:92px; height:92px; border-radius:14px; background:linear-gradient(150deg,#d8554a,#b23a30);
+    border:2px solid rgba(70,35,20,.5); font-size:2.6rem; left:50%; margin-left:-46px; top:6px; z-index:3;
+    animation:musumeSlide 7s ease-in-out infinite;
+  }
+  .motif.tile{
+    width:58px; height:58px; border-radius:10px; background:linear-gradient(160deg,#fdf8ec,#ecd9ab);
+    border:2px solid rgba(90,70,30,.55); color:#4a3b22; text-shadow:none; font-size:1.35rem;
+    animation:tileBob 6s ease-in-out infinite;
+  }
+  .motif.tile.t7{left:6%; top:16px; animation-delay:.4s;}
+  .motif.tile.t15{right:5%; top:44px; animation-delay:1.1s;}
+  .motif.stone{width:44px; height:44px; border-radius:50%; animation:stoneBob 6.5s ease-in-out infinite;}
+  .motif.stone.black{background:radial-gradient(circle at 35% 30%, #6b6b6b, #17171a 70%); left:12%; bottom:6px;}
+  .motif.stone.white{background:radial-gradient(circle at 35% 30%, #ffffff, #d9d2bd 75%); border:1px solid #b7ab8c; right:21%; bottom:8px; animation-delay:.8s;}
+  .sparkle{position:absolute; color:#ffe9a8; font-size:1rem; animation:twinkle 2.8s ease-in-out infinite; text-shadow:0 0 8px rgba(255,220,120,.9);}
+  @keyframes musumeSlide{0%,100%{transform:translateY(0);}50%{transform:translateY(14px);}}
+  @keyframes tileBob{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-9px) rotate(3deg);}}
+  @keyframes stoneBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+  @keyframes twinkle{0%,100%{opacity:.25; transform:scale(.8);}50%{opacity:1; transform:scale(1.15);}}
+  .hero .catch{color:#fdf6dd; font-size:.94rem; margin:4px 0 2px; text-shadow:0 1px 3px rgba(0,0,0,.45);}
+  .hero .catch b{color:#ffd968;}
+  .fadeup{animation:fadeUp .6s ease both;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:none;}}
+  @media (prefers-reduced-motion: reduce){
+    .motif, .sparkle, .fadeup{animation:none !important;}
+  }
+  /* ---- ゲームボタン（モチーフチップ付き） ---- */
+  .gamebtn{display:flex; align-items:center; gap:13px;}
+  .gamebtn .chip{
+    flex:0 0 auto; width:52px; height:52px; border-radius:11px; position:relative;
+    display:flex; align-items:center; justify-content:center; font-weight:bold;
+    box-shadow:0 3px 8px rgba(60,45,15,.3), inset 0 1px 0 rgba(255,255,255,.45);
+  }
+  .chip.musume{background:linear-gradient(150deg,#d8554a,#b23a30); color:#fff; font-size:1.5rem; border:2px solid rgba(70,35,20,.45);}
+  .chip.tile15{background:linear-gradient(160deg,#fdf8ec,#ecd9ab); color:#4a3b22; font-size:1.1rem; border:2px solid rgba(90,70,30,.5);}
+  .chip.dad1{background:linear-gradient(150deg,#4d7fae,#35608c); color:#fff; font-size:1.35rem; border:2px solid rgba(25,45,70,.5);}
+  .chip.kit{background:linear-gradient(150deg,#e3b93c,#c9a227); color:#5c4710; font-size:1.3rem; border:2px solid rgba(90,70,20,.5);}
+  .chip.stones{background:linear-gradient(150deg,#fdf6dd,#f0e4c3); border:2px solid rgba(90,70,30,.4);}
+  .chip.stones i{position:absolute; width:22px; height:22px; border-radius:50%; box-shadow:0 2px 4px rgba(60,45,15,.35);}
+  .chip.stones i.b{background:radial-gradient(circle at 35% 30%, #6b6b6b, #17171a 70%); left:7px; top:8px;}
+  .chip.stones i.w{background:radial-gradient(circle at 35% 30%, #ffffff, #d9d2bd 75%); border:1px solid #b7ab8c; right:7px; bottom:8px;}
+  .gamebtn .gtext{flex:1 1 auto; min-width:0;}
+  .gamebtn .gtext h2{margin:0 0 2px;}
   select.pairs{font-family:inherit; font-size:1rem; padding:5px 8px; border-radius:8px; border:1px solid var(--line); background:#fff;}
   .modes{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0;}
   .footer{text-align:center; font-size:.78rem; color:#8a7f6a; margin-top:22px;}
@@ -131,31 +199,61 @@
 <body>
 <div class="wrap">
   <header class="top">
+    <p class="flourish">✦ ✦ ✦</p>
     <h1>スライドパズル工房</h1>
     <p class="sub">箱入り娘・15パズル・オシドリの遊び ― 滑らせて解く、古典パズルの工房</p>
   </header>
 
   <!-- ===== ホーム ===== -->
   <div id="screen-home">
-    <button class="gamebtn" id="goHakoiri">
-      <h2>箱入り娘 <span class="tag">4×5・最短81手</span></h2>
-      <p>いちばん大きな駒「娘」を、箱の下の出口まで運ぶ古典パズル。駒をタップして、矢印で滑らせます。</p>
+    <div class="hero fadeup">
+      <span class="ribbon">古典パズルの工房へ ようこそ</span>
+      <div class="stage" aria-hidden="true">
+        <span class="sparkle" style="left:20%; top:4px;">✦</span>
+        <span class="sparkle" style="right:22%; top:22px; animation-delay:.7s;">✦</span>
+        <span class="sparkle" style="left:44%; bottom:2px; animation-delay:1.3s;">✦</span>
+        <div class="motif tile t7">7</div>
+        <div class="motif musume">娘</div>
+        <div class="motif tile t15">15</div>
+        <div class="motif stone black"></div>
+        <div class="motif stone white"></div>
+      </div>
+      <p class="catch">滑らせて、考えて、解けた！ ― <b>最短手数はすべて計算で確かめた</b>、本格派の4つのパズルです。</p>
+    </div>
+    <button class="gamebtn fadeup" id="goHakoiri" style="animation-delay:.08s">
+      <span class="chip musume">娘</span>
+      <span class="gtext">
+        <h2>箱入り娘 <span class="tag">4×5・最短81手</span></h2>
+        <p>いちばん大きな駒「娘」を、箱の下の出口まで運ぶ古典パズル。駒をタップして、矢印で滑らせます。</p>
+      </span>
     </button>
-    <button class="gamebtn" id="goFifteen">
-      <h2>15パズル <span class="tag">4×4・必ず解ける出題</span></h2>
-      <p>1から15の数字タイルを順に並べます。解けない配置は出題されません（理由はコラムで）。</p>
+    <button class="gamebtn fadeup" id="goFifteen" style="animation-delay:.16s">
+      <span class="chip tile15">15</span>
+      <span class="gtext">
+        <h2>15パズル <span class="tag">4×4・必ず解ける出題</span></h2>
+        <p>1から15の数字タイルを順に並べます。解けない配置は出題されません（理由はコラムで）。</p>
+      </span>
     </button>
-    <button class="gamebtn" id="goOshidori">
-      <h2>オシドリの遊び <span class="tag">一列の石・ペア移動</span></h2>
-      <p>黒と白の石を、2個ずつのペアで空きへ移して、色ごとにまとめます。3組〜8組＋変形ルール2種。</p>
+    <button class="gamebtn fadeup" id="goOshidori" style="animation-delay:.24s">
+      <span class="chip stones"><i class="b"></i><i class="w"></i></span>
+      <span class="gtext">
+        <h2>オシドリの遊び <span class="tag">一列の石・ペア移動</span></h2>
+        <p>黒と白の石を、2個ずつのペアで空きへ移して、色ごとにまとめます。3組〜8組＋変形ルール2種。</p>
+      </span>
     </button>
-    <button class="gamebtn" id="goDad">
-      <h2>ダッド・パズル <span class="tag">おまけ・角から角へ</span></h2>
-      <p>大きな駒を、左上の角 A から右下の角 C へ。本では「59手の解」が紹介されています。</p>
+    <button class="gamebtn fadeup" id="goDad" style="animation-delay:.32s">
+      <span class="chip dad1">1</span>
+      <span class="gtext">
+        <h2>ダッド・パズル <span class="tag">おまけ・角から角へ</span></h2>
+        <p>大きな駒を、左上の角 A から右下の角 C へ。本では「59手の解」が紹介されています。</p>
+      </span>
     </button>
-    <button class="gamebtn" id="goKit">
-      <h2>ペーパークラフトキット <span class="tag">印刷して作る</span></h2>
-      <p>3つのパズルの盤と駒を印刷して作れます。挑戦記録シート付き。</p>
+    <button class="gamebtn fadeup" id="goKit" style="animation-delay:.4s">
+      <span class="chip kit">✂</span>
+      <span class="gtext">
+        <h2>ペーパークラフトキット <span class="tag">印刷して作る</span></h2>
+        <p>3つのパズルの盤と駒を印刷して作れます。挑戦記録シート付き。</p>
+      </span>
     </button>
     <div class="card">
       <h2 class="sec">このアプリについて</h2>
