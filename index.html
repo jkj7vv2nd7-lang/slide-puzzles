@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>スライドパズル工房 ― 箱入り娘・15パズル・オシドリの遊び</title>
+<meta name="description" content="箱入り娘・15パズル・オシドリの遊び・ダッドパズルが遊べるスライドパズル集。ペーパークラフトキット付き。">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+  :root{
+    --paper:#f7f1e3; --card:#fffdf6; --ink:#2b2620; --accent:#2e7d5b; --accent2:#b3512f;
+    --line:#d8cdb4; --gold:#c9a227;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:"Hiragino Mincho ProN","YuMincho","Noto Serif JP","Times New Roman",serif;
+    background:var(--paper); color:var(--ink); line-height:1.7;
+    padding:env(safe-area-inset-top) 12px calc(28px + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:560px; margin:0 auto;}
+  header.top{text-align:center; padding:18px 4px 4px;}
+  header.top h1{font-size:1.45rem; margin:0 0 2px; letter-spacing:.04em;}
+  header.top .sub{font-size:.86rem; color:#6d6353; margin:0;}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:14px 16px; margin:14px 0; box-shadow:0 2px 8px rgba(90,70,30,.07);
+  }
+  .gamebtn{
+    display:block; width:100%; text-align:left; cursor:pointer;
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:14px 16px; margin:12px 0; box-shadow:0 2px 8px rgba(90,70,30,.07);
+    font-family:inherit; color:var(--ink);
+  }
+  .gamebtn:active{transform:scale(.99);}
+  .gamebtn h2{margin:0 0 2px; font-size:1.18rem;}
+  .gamebtn p{margin:0; font-size:.86rem; color:#6d6353;}
+  .gamebtn .tag{display:inline-block; font-size:.72rem; background:#eef4ee; color:var(--accent);
+    border:1px solid #cfe0d2; border-radius:999px; padding:0 8px; margin-left:6px; vertical-align:middle;}
+  .rowbtns{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0;}
+  .subbtn{
+    font-family:inherit; font-size:.92rem; cursor:pointer; border-radius:10px;
+    border:1px solid var(--line); background:#fff; color:var(--ink); padding:7px 14px;
+  }
+  .subbtn.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:bold;}
+  .subbtn.warn{background:#fdf1ec; border-color:#e3b7a6; color:var(--accent2);}
+  .subbtn:disabled{opacity:.45; cursor:default;}
+  .subbtn.sel{background:#eef4ee; border-color:var(--accent); color:var(--accent); font-weight:bold;}
+  .hud{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:.95rem; margin:6px 0 2px;}
+  .hud b{font-size:1.05rem;}
+  .msg{min-height:1.6em; font-size:.92rem; color:var(--accent2); margin:4px 0;}
+  .note{font-size:.84rem; color:#6d6353;}
+  details.col{margin:12px 0;}
+  details.col summary{cursor:pointer; font-weight:bold; color:var(--accent); font-size:.95rem;}
+  details.col .body{font-size:.88rem; padding:6px 2px;}
+  details.col .body p{margin:.5em 0;}
+  .backlink{font-size:.9rem;}
+  .backlink button{background:none; border:none; color:var(--accent); font-family:inherit; font-size:.95rem; cursor:pointer; padding:4px 0;}
+  .hidden{display:none !important;}
+  h2.sec{font-size:1.1rem; margin:4px 0 6px;}
+  /* ---- 盤（スライドブロック） ---- */
+  .boardwrap{display:flex; justify-content:center; margin:8px 0;}
+  .board{
+    position:relative; background:#e9dfc8; border:3px solid #8a7a58; border-radius:8px;
+    box-shadow:inset 0 0 0 2px #f4ecd9;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none;
+  }
+  .board .exitmark{
+    position:absolute; left:50%; transform:translateX(-50%); bottom:-24px;
+    font-size:.78rem; color:var(--accent2); white-space:nowrap;
+  }
+  .piece{
+    position:absolute; border-radius:7px; border:2px solid rgba(70,50,20,.45);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:bold; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.35);
+    transition:left .16s ease, top .16s ease; cursor:pointer;
+    box-shadow:0 2px 4px rgba(60,45,15,.25), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .piece.selected{outline:3px solid var(--gold); outline-offset:-1px; z-index:5;}
+  .piece.hinted{outline:3px solid #e2574c; outline-offset:-1px; z-index:5;}
+  .dirbtn{
+    position:absolute; z-index:8; width:30px; height:30px; border-radius:50%;
+    background:rgba(46,125,91,.92); color:#fff; border:2px solid #fff;
+    font-size:16px; line-height:1; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.3); padding:0; font-family:inherit;
+  }
+  /* ---- 15パズル ---- */
+  .tile{
+    position:absolute; border-radius:8px; border:2px solid rgba(70,50,20,.4);
+    background:linear-gradient(160deg,#fdf8ec,#efe3c8);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:bold; color:#4a3b22; font-size:1.35rem;
+    transition:left .13s ease, top .13s ease; cursor:pointer;
+    box-shadow:0 2px 4px rgba(60,45,15,.22), inset 0 1px 0 #fff;
+  }
+  .tile.done{background:linear-gradient(160deg,#dff0e2,#bfe0c9); color:var(--accent);}
+  /* ---- オシドリ ---- */
+  .strip{display:flex; gap:4px; justify-content:center; flex-wrap:nowrap; margin:14px 0 6px;}
+  .cell{
+    width:34px; height:44px; border-radius:8px; 
+    border:1px dashed #c4b895; background:#efe8d5; position:relative; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stone{
+    width:28px; height:28px; border-radius:50%; cursor:pointer; flex:0 0 auto;
+    box-shadow:0 2px 4px rgba(60,45,15,.3), inset 0 2px 3px rgba(255,255,255,.4);
+    transition:transform .15s ease;
+  }
+  .stone.black{background:radial-gradient(circle at 35% 30%, #6b6b6b, #17171a 70%);}
+  .stone.white{background:radial-gradient(circle at 35% 30%, #ffffff, #d9d2bd 75%); border:1px solid #b7ab8c;}
+  .stone.ghost{opacity:.28;}
+  .cell.grp{outline:3px solid var(--gold); outline-offset:-2px; background:#f7ecd2;}
+  .cell.grpdest{outline:3px solid var(--accent); outline-offset:-2px;}
+  .goalfig{font-size:.85rem; text-align:center; color:#6d6353; margin:2px 0 0;}
+  /* ---- キット ---- */
+  .sheetbox{margin:10px 0; text-align:center;}
+  .sheetbox img{max-width:100%; border:1px solid var(--line); border-radius:6px; background:#fff;}
+  .kitlinks{display:flex; flex-direction:column; gap:8px; margin:8px 0;}
+  .win{
+    text-align:center; font-size:1.12rem; color:var(--accent); font-weight:bold; margin:8px 0 2px;
+  }
+  .fanfare{animation:pop .5s ease;}
+  @keyframes pop{0%{transform:scale(.92);}60%{transform:scale(1.04);}100%{transform:scale(1);}}
+  select.pairs{font-family:inherit; font-size:1rem; padding:5px 8px; border-radius:8px; border:1px solid var(--line); background:#fff;}
+  .modes{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0;}
+  .footer{text-align:center; font-size:.78rem; color:#8a7f6a; margin-top:22px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>スライドパズル工房</h1>
+    <p class="sub">箱入り娘・15パズル・オシドリの遊び ― 滑らせて解く、古典パズルの工房</p>
+  </header>
+
+  <!-- ===== ホーム ===== -->
+  <div id="screen-home">
+    <button class="gamebtn" id="goHakoiri">
+      <h2>箱入り娘 <span class="tag">4×5・最短81手</span></h2>
+      <p>いちばん大きな駒「娘」を、箱の下の出口まで運ぶ古典パズル。駒をタップして、矢印で滑らせます。</p>
+    </button>
+    <button class="gamebtn" id="goFifteen">
+      <h2>15パズル <span class="tag">4×4・必ず解ける出題</span></h2>
+      <p>1から15の数字タイルを順に並べます。解けない配置は出題されません（理由はコラムで）。</p>
+    </button>
+    <button class="gamebtn" id="goOshidori">
+      <h2>オシドリの遊び <span class="tag">一列の石・ペア移動</span></h2>
+      <p>黒と白の石を、2個ずつのペアで空きへ移して、色ごとにまとめます。3組〜8組＋変形ルール2種。</p>
+    </button>
+    <button class="gamebtn" id="goDad">
+      <h2>ダッド・パズル <span class="tag">おまけ・角から角へ</span></h2>
+      <p>大きな駒を、左上の角 A から右下の角 C へ。本では「59手の解」が紹介されています。</p>
+    </button>
+    <button class="gamebtn" id="goKit">
+      <h2>ペーパークラフトキット <span class="tag">印刷して作る</span></h2>
+      <p>3つのパズルの盤と駒を印刷して作れます。挑戦記録シート付き。</p>
+    </button>
+    <div class="card">
+      <h2 class="sec">このアプリについて</h2>
+      <p style="font-size:.9rem; margin:.4em 0;">3つのパズルは、どれも「盤の上で駒を滑らせて並べかえる」古典的な遊びです。最短手数はすべてコンピュータで確かめてあります。箱入り娘の81手、オシドリの組数ごとの手数も、実際に全ての手順を調べた結果です。</p>
+      <p class="note" style="margin:.4em 0;">出典：高木茂男・中村義作『数理パズル』（中公新書）p77–91 の配置とルールをもとに作りました。文章とプログラムは本アプリの書き下ろしです。</p>
+      <div class="rowbtns">
+        <button class="subbtn" id="btnSoundHome">🔊 音：オン</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 15パズル ===== -->
+  <div id="screen-fifteen" class="hidden">
+    <p class="backlink"><button data-back>← もどる</button></p>
+    <h2 class="sec">15パズル</h2>
+    <p class="note" style="margin:2px 0;">空きマスの隣のタイルをタップすると滑ります。1→15の順に並べれば完成です。</p>
+    <div class="boardwrap"><div class="board" id="fifteenBoard"></div></div>
+    <div class="hud">
+      <span>手数 <b id="fifteenMoves">0</b></span>
+      <span>時間 <b id="fifteenTime">0:00</b></span>
+      <span>ベスト <b id="fifteenBest">―</b></span>
+    </div>
+    <p class="msg" id="fifteenMsg"></p>
+    <p class="win hidden" id="fifteenWin">🎉 完成！ お見事です。</p>
+    <div class="rowbtns">
+      <button class="subbtn" id="fifteenUndo">↩ もどる</button>
+      <button class="subbtn" id="fifteenRestart">最初から</button>
+      <button class="subbtn primary" id="fifteenNew">新しい問題</button>
+      <button class="subbtn" data-sound>🔊 音：オン</button>
+    </div>
+    <details class="col">
+      <summary>コラム：なぜ「解けない配置」があるの？ ― 転倒数と14・15の話</summary>
+      <div class="body">
+        <p>15パズルは、1870年代の終わりにアメリカで生まれ、世界的な大流行になりました。考案者の名にちなむ「14・15パズル」という問題も有名です。完成形の14と15だけを入れかえた配置から、どうやっても完成形に戻せないか、という挑戦で、懸賞金までかけられたといいます。</p>
+        <p>じつは、その配置は「絶対に解けない」ことが数学で証明できます。鍵は<b>転倒数</b>（逆転数）です。タイルを左上から順に読み、〈自分の後ろに、自分より小さい数字がいくつあるか〉を全部のタイルについて数えて合計したものが転倒数です。</p>
+        <p>タイルを1回滑らせるたびに、転倒数の偶数・奇数は、空きマスの段の上下と組み合わさって、ある量が変わらないまま保たれます（不変量といいます）。完成形と「14・15入れかえ形」ではこの量が食い違うので、永遠にたどり着けないのです。シャッフルされた配置の約半分は、じつは解けない配置です。</p>
+        <p>このアプリでは、出題のときに転倒数を計算して、<b>必ず解ける配置だけ</b>を出しています。安心して挑戦してください。</p>
+        <p class="note">出典：『数理パズル』p77–79 の説明をもとに書きました。</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- ===== 箱入り娘／ダッド（共通画面） ===== -->
+  <div id="screen-block" class="hidden">
+    <p class="backlink"><button data-back>← もどる</button></p>
+    <h2 class="sec" id="blockTitle">箱入り娘</h2>
+    <p class="note" id="blockIntro" style="margin:2px 0;"></p>
+    <div class="boardwrap"><div class="board" id="blockBoard"></div></div>
+    <div class="hud">
+      <span>手数 <b id="blockMoves">0</b></span>
+      <span>時間 <b id="blockTime">0:00</b></span>
+      <span>ベスト <b id="blockBest">―</b></span>
+      <span id="blockTarget"></span>
+    </div>
+    <p class="msg" id="blockMsg"></p>
+    <p class="win hidden" id="blockWin"></p>
+    <div class="rowbtns">
+      <button class="subbtn" id="blockHint">💡 ヒント</button>
+      <button class="subbtn" id="blockUndo">↩ もどる</button>
+      <button class="subbtn" id="blockRestart">最初から</button>
+      <button class="subbtn" data-sound>🔊 音：オン</button>
+    </div>
+    <p class="note" id="blockCountNote"></p>
+    <details class="col" id="blockColumnWrap">
+      <summary id="blockColumnTitle">コラム</summary>
+      <div class="body" id="blockColumn"></div>
+    </details>
+  </div>
+
+  <!-- ===== オシドリ ===== -->
+  <div id="screen-oshidori" class="hidden">
+    <p class="backlink"><button data-back>← もどる</button></p>
+    <h2 class="sec">オシドリの遊び</h2>
+    <div class="modes">
+      <button class="subbtn sel" id="oshiModePair">ふつう（2個ずつ）</button>
+      <button class="subbtn" id="oshiModeTriple">変形：3個ずつ</button>
+      <button class="subbtn" id="oshiModeSwap">変形：入れかえ</button>
+    </div>
+    <div id="oshiPairControls">
+      <label style="font-size:.92rem;">石の組数：
+        <select class="pairs" id="oshiPairs">
+          <option value="3">3組</option><option value="4">4組</option><option value="5" selected>5組</option>
+          <option value="6">6組</option><option value="7">7組</option><option value="8">8組</option>
+        </select>
+      </label>
+      <span class="note" id="oshiTargetNote"></span>
+    </div>
+    <p class="note" id="oshiIntro" style="margin:4px 0 0;"></p>
+    <div class="strip" id="oshiStrip"></div>
+    <p class="goalfig" id="oshiGoalFig"></p>
+    <div class="hud">
+      <span>手数 <b id="oshiMoves">0</b></span>
+      <span>時間 <b id="oshiTime">0:00</b></span>
+      <span>ベスト <b id="oshiBest">―</b></span>
+    </div>
+    <p class="msg" id="oshiMsg"></p>
+    <p class="win hidden" id="oshiWin">🎉 そろいました！ お見事です。</p>
+    <div class="rowbtns">
+      <button class="subbtn" id="oshiUndo">↩ もどる</button>
+      <button class="subbtn" id="oshiRestart">最初から</button>
+      <button class="subbtn" data-sound>🔊 音：オン</button>
+    </div>
+    <details class="col">
+      <summary>コラム：清朝の書物に載っていた、ふしぎな石の遊び</summary>
+      <div class="body">
+        <p>「オシドリの遊び」は、清の時代の中国の書物に「おしどりの遊び」の名で紹介されていたという古いパズルです。黒と白の石を交互に並べ、空きマスを使って「隣り合う2個をペアで」移していく。それだけで、黒は黒、白は白にまとめ直すのです。</p>
+        <p>おもしろいのは最短手数です。3組なら3手、4組なら4手……と、コンピュータで全ての手順を調べると、<b>組数と最短手数がぴったり一致</b>します。ただし、それは「正しいペアの動かし方」をした場合だけ。行き当たりばったりでは、すぐに手詰まりのような状態になって遠回りします。本では、大きな組数でも解ける「並べかえのパターン」が紹介されています。</p>
+        <p>「3個ずつ」の変形は、黒白4個ずつ・空き3マスで、3個のペアを移します。本では4手の解が示されています。「入れかえ」は別の古典的な形で、白は右へだけ、黒は左へだけ進み、隣の空きへ滑るか、異色の石を1個跳び越します。白黒3個ずつの最短は15手です（跳び越しの回数と滑る回数の組み合わせで決まります）。</p>
+        <p class="note">出典：『数理パズル』p84–91 の配置とルールをもとに書きました。最短手数は本アプリで全探索して確かめた値です。</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- ===== キット ===== -->
+  <div id="screen-kit" class="hidden">
+    <p class="backlink"><button data-back>← もどる</button></p>
+    <h2 class="sec">ペーパークラフトキット</h2>
+    <p style="font-size:.9rem; margin:2px 0;">3つのパズルの盤と駒を、A4用紙に印刷して作れます。各シートには「5cm確認線」が入っています。印刷できたら、まずその線が実測5cmになっているか確かめてください（ずれる場合はプリンター設定を「実際のサイズ／100%」に）。</p>
+    <p class="note">作り方：盤シートは厚紙に貼ると丈夫です。駒は切り取り線に沿って切り、盤の上で滑らせて遊びます。箱入り娘は、出口の印のある辺が下です。</p>
+    <div class="rowbtns">
+      <button class="subbtn primary" id="kitMake">印刷用シートとPDFを作る</button>
+    </div>
+    <p class="msg" id="kitMsg"></p>
+    <div id="kitReady" class="hidden">
+      <div class="rowbtns">
+        <button class="subbtn" id="kitShare" style="background:#2e7d5b;border-color:#2e7d5b;color:#fff;font-weight:bold;">📤 共有する（印刷もここから）</button>
+        <a class="subbtn" id="kitOpenPdf" href="#" style="background:#2e7d5b;border-color:#2e7d5b;color:#fff;font-weight:bold;text-decoration:none;">📄 PDFを開く</a>
+      </div>
+      <p class="note">iPhoneでは、下のシート画像を長押しして「写真に追加」でも保存できます。共有シートの「プリント」から印刷できます。</p>
+    </div>
+    <div id="kitSheets"></div>
+    <details class="col">
+      <summary>挑戦記録シートについて</summary>
+      <div class="body">
+        <p>4枚目のシートは、解けた日付・手数・時間を書き込む記録シートです。箱入り娘は最短81手、オシドリは組数と同じ手数が最短です。自分の記録が縮んでいくのを楽しんでください。</p>
+      </div>
+    </details>
+  </div>
+
+  <p class="footer">スライドパズル工房 ― 古典パズルを、確かめてから届ける工房</p>
+</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const SERIF = '"Hiragino Mincho ProN","YuMincho","Noto Serif JP",serif';
+
+/* ---------- 音（Web Audio 合成） ---------- */
+const SoundBox = {
+  ctx: null,
+  enabled: localStorage.getItem('slide_puzzle_sound') !== 'off',
+  ensure() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  tone(freq, dur, type, vol, when, slideTo) {
+    if (!this.enabled) return;
+    const ctx = this.ensure(); if (!ctx) return;
+    const t = ctx.currentTime + (when || 0);
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.15, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t + dur + 0.05);
+  },
+  slide() { this.tone(320, 0.09, 'triangle', 0.12, 0, 170); },
+  tap() { this.tone(660, 0.05, 'sine', 0.08); },
+  bad() { this.tone(150, 0.12, 'square', 0.05); },
+  fanfare() {
+    [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.22, 'triangle', 0.16, i * 0.11));
+    this.tone(1319, 0.4, 'triangle', 0.14, 0.46);
+  },
+  toggle() {
+    this.enabled = !this.enabled;
+    localStorage.setItem('slide_puzzle_sound', this.enabled ? 'on' : 'off');
+    document.querySelectorAll('[data-sound], #btnSoundHome').forEach(b => { b.textContent = this.enabled ? '🔊 音：オン' : '🔇 音：オフ'; });
+    if (this.enabled) this.tap();
+  },
+};
+document.querySelectorAll('[data-sound]').forEach(b => b.addEventListener('click', () => SoundBox.toggle()));
+$('btnSoundHome').addEventListener('click', () => SoundBox.toggle());
+if (!SoundBox.enabled) document.querySelectorAll('[data-sound], #btnSoundHome').forEach(b => { b.textContent = '🔇 音：オフ'; });
+
+/* ---------- 画面遷移 ---------- */
+const screens = ['home', 'fifteen', 'block', 'oshidori', 'kit'];
+function show(name) {
+  screens.forEach(s => $('screen-' + s).classList.toggle('hidden', s !== name));
+  stopTimer();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => { SoundBox.tap(); show('home'); }));
+
+/* ---------- タイマーと記録 ---------- */
+let timerId = null, timerStart = 0, timerBase = 0;
+function fmtTime(sec) { return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+function startTimer(el) {
+  stopTimer();
+  timerStart = Date.now(); timerBase = 0;
+  el.textContent = '0:00';
+  timerId = setInterval(() => { el.textContent = fmtTime(Math.floor((Date.now() - timerStart) / 1000)); }, 500);
+}
+function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+function elapsedSec() { return timerId ? Math.floor((Date.now() - timerStart) / 1000) : 0; }
+function loadBest() { try { return JSON.parse(localStorage.getItem('slide_puzzle_best_v1') || '{}'); } catch (e) { return {}; } }
+function saveBest(key, moves, sec) {
+  const all = loadBest();
+  const cur = all[key];
+  if (!cur || moves < cur.moves || (moves === cur.moves && sec < cur.sec)) {
+    all[key] = { moves, sec };
+    localStorage.setItem('slide_puzzle_best_v1', JSON.stringify(all));
+    return true;
+  }
+  return false;
+}
+function bestText(key) {
+  const b = loadBest()[key];
+  return b ? b.moves + '手・' + fmtTime(b.sec) : '―';
+}
+
+/* ================= 15パズル ================= */
+const F = {
+  state: [], moves: 0, history: [], started: false, solved: false,
+  tileEls: {},
+};
+function inversions(arr) {
+  const a = arr.filter(v => v !== 0);
+  let inv = 0;
+  for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) if (a[i] > a[j]) inv++;
+  return inv;
+}
+/* 4×4：転倒数が偶数 かつ 空きが下から奇数段目 ⇔ 解ける（不変量の照合） */
+function fifteenSolvable(arr) {
+  const inv = inversions(arr);
+  const blankRowFromBottom = 4 - Math.floor(arr.indexOf(0) / 4);
+  return (inv % 2 === 0) === (blankRowFromBottom % 2 === 1);
+}
+function fifteenShuffle() {
+  let arr;
+  do {
+    arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+    for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+  } while (!fifteenSolvable(arr) || arr.every((v, i) => v === (i + 1) % 16));
+  return arr;
+}
+function fifteenLayout() {
+  const board = $('fifteenBoard');
+  const W = Math.min(board.parentElement.clientWidth || 340, 380);
+  const cell = Math.floor(W / 4);
+  board.style.width = cell * 4 + 'px';
+  board.style.height = cell * 4 + 'px';
+  for (let v = 1; v <= 15; v++) {
+    const el = F.tileEls[v];
+    if (!el) continue;
+    const idx = F.state.indexOf(v);
+    el.style.width = cell - 6 + 'px'; el.style.height = cell - 6 + 'px';
+    el.style.left = (idx % 4) * cell + 3 + 'px';
+    el.style.top = Math.floor(idx / 4) * cell + 3 + 'px';
+    el.style.fontSize = Math.max(18, cell * 0.38) + 'px';
+  }
+}
+function fifteenRender() { fifteenLayout(); $('fifteenMoves').textContent = F.moves; }
+function fifteenNewGame() {
+  F.state = fifteenShuffle();
+  F.moves = 0; F.history = []; F.started = false; F.solved = false;
+  const board = $('fifteenBoard');
+  board.innerHTML = ''; F.tileEls = {};
+  for (let v = 1; v <= 15; v++) {
+    const el = document.createElement('div');
+    el.className = 'tile'; el.textContent = v;
+    el.addEventListener('click', () => fifteenTap(v));
+    board.appendChild(el); F.tileEls[v] = el;
+  }
+  $('fifteenMsg').textContent = '';
+  $('fifteenWin').classList.add('hidden');
+  $('fifteenBest').textContent = bestText('fifteen');
+  stopTimer(); $('fifteenTime').textContent = '0:00';
+  fifteenRender();
+}
+function fifteenTap(v) {
+  if (F.solved) return;
+  const idx = F.state.indexOf(v), b = F.state.indexOf(0);
+  const adj = Math.abs((idx % 4) - (b % 4)) + Math.abs(Math.floor(idx / 4) - Math.floor(b / 4)) === 1;
+  if (!adj) { SoundBox.bad(); return; }
+  if (!F.started) { F.started = true; startTimer($('fifteenTime')); }
+  F.history.push(F.state.slice());
+  [F.state[idx], F.state[b]] = [F.state[b], F.state[idx]];
+  F.moves++;
+  SoundBox.slide();
+  fifteenRender();
+  if (F.state.every((x, i) => x === (i + 1) % 16)) {
+    F.solved = true;
+    stopTimer();
+    for (let k = 1; k <= 15; k++) F.tileEls[k].classList.add('done');
+    const isBest = saveBest('fifteen', F.moves, elapsedSec());
+    $('fifteenBest').textContent = bestText('fifteen');
+    $('fifteenWin').textContent = '🎉 完成！ ' + F.moves + '手・' + fmtTime(elapsedSec()) + (isBest ? ' ― ベスト記録更新！' : '');
+    $('fifteenWin').classList.remove('hidden');
+    $('fifteenWin').classList.remove('fanfare'); void $('fifteenWin').offsetWidth; $('fifteenWin').classList.add('fanfare');
+    SoundBox.fanfare();
+  }
+}
+$('fifteenNew').addEventListener('click', () => { SoundBox.tap(); fifteenNewGame(); });
+$('fifteenRestart').addEventListener('click', () => {
+  if (!F.history.length) return;
+  SoundBox.tap();
+  F.state = F.history[0].slice(); F.history = []; F.moves = 0; F.solved = false;
+  stopTimer(); $('fifteenTime').textContent = '0:00'; F.started = false;
+  for (let k = 1; k <= 15; k++) F.tileEls[k].classList.remove('done');
+  $('fifteenWin').classList.add('hidden');
+  fifteenRender();
+});
+$('fifteenUndo').addEventListener('click', () => {
+  if (!F.history.length || F.solved) return;
+  SoundBox.tap();
+  F.state = F.history.pop(); F.moves--;
+  fifteenRender();
+});
+$('goFifteen').addEventListener('click', () => { SoundBox.tap(); show('fifteen'); fifteenNewGame(); });
+window.addEventListener('resize', () => { if (!$('screen-fifteen').classList.contains('hidden')) fifteenLayout(); });
+
+/* ================= スライドブロック共通エンジン（箱入り娘／ダッド） ================= */
+const BLOCK_CONFIGS = {
+  hakoiri: {
+    title: '箱入り娘',
+    bestKey: 'hakoiri',
+    intro: 'いちばん大きな駒「娘」を、下の出口まで運んでください。駒をタップすると、滑らせる方向の矢印が出ます。',
+    countNote: '手数の数え方：同じ駒を続けて動かしている間は、何マス動いても、途中で曲がっても「1手」と数えます。別の駒を動かすと次の手になります（本の数え方です）。',
+    targetHtml: '最短 <b>81手</b>（コンピュータで確認済み）',
+    winText: '🎉 娘が出口に着きました！ お見事です。',
+    goal: { piece: 0, x: 1, y: 3 },
+    groups: [[1, 2, 3, 5], [6, 7, 8, 9]],
+    zone: { x: 1, y: 3, w: 2, h: 2, label: '出口' },
+    exitLabel: '⬇ 出口',
+    pieces: [
+      { id: 'M', label: '娘', x: 1, y: 0, w: 2, h: 2, color: '#c0453a', font: 1.5 },
+      { id: '1', label: '1', x: 0, y: 0, w: 1, h: 2, color: '#7a9e7e' },
+      { id: '2', label: '2', x: 3, y: 0, w: 1, h: 2, color: '#7a9e7e' },
+      { id: '3', label: '3', x: 0, y: 2, w: 1, h: 2, color: '#5b84ae' },
+      { id: '4', label: '4', x: 1, y: 2, w: 2, h: 1, color: '#c9a227' },
+      { id: '5', label: '5', x: 3, y: 2, w: 1, h: 2, color: '#5b84ae' },
+      { id: '6', label: '6', x: 1, y: 3, w: 1, h: 1, color: '#9b7eb8' },
+      { id: '7', label: '7', x: 2, y: 3, w: 1, h: 1, color: '#9b7eb8' },
+      { id: '8', label: '8', x: 0, y: 4, w: 1, h: 1, color: '#b08954' },
+      { id: '9', label: '9', x: 3, y: 4, w: 1, h: 1, color: '#b08954' },
+    ],
+    columnTitle: 'コラム：81手の名作と、段ボールで作った大きな箱入り娘',
+    column: [
+      '「箱入り娘」は日本の古典的なスライドパズルで、海外では「クロツキー（Klotski）」の名でも知られています。大きな駒（娘）を箱の下の出口まで運ぶだけの、単純な約束ごとです。ところが最短でも81手かかることが、コンピュータの全探索で確かめられています。このアプリでも同じ81手を自分たちで確かめました（数え方は上の注のとおりです）。',
+      '駒には、娘・父・母・祖父・祖母・番頭・丁稚といった名前を付けるのが昔ながらの習慣です。このアプリでは本の図に合わせて番号で示しました。',
+      '作った人の思い出をひとつ。元・数学教師の清水さんは、特別支援学級を受け持ったとき、段ボール箱などで大きな箱入り娘を作った覚えがあり、子どもたちが喜んで遊んでいたそうです。2007年には、印刷して作れるB5サイズの型紙をブログで配ってもいました。手のひらのパズルも、大きく作ると体ごと考える遊びになります。このアプリの「ペーパークラフトキット」も、その流れで用意しました。',
+      '出典：『数理パズル』p80–81（図③）の配置をもとに作りました。',
+    ],
+  },
+  dad: {
+    title: 'ダッド・パズル',
+    bestKey: 'dad',
+    intro: '大きな駒「1」を、左上の角 A から、右下の角 C まで運んでください。駒をタップすると矢印が出ます。',
+    countNote: '手数の数え方：箱入り娘と同じく、同じ駒を続けて動かしている間は1手と数えます。',
+    targetHtml: '最短 <b>29手</b>（この数え方で全探索）／ 本では59手の解',
+    winText: '🎉 大きな駒が C の角に着きました！ お見事です。',
+    goal: { piece: 0, x: 2, y: 3 },
+    groups: [[1, 2, 7, 8], [3, 4], [5, 6]],
+    zone: { x: 2, y: 3, w: 2, h: 2, label: 'C' },
+    exitLabel: '',
+    pieces: [
+      { id: '1', label: '1', x: 0, y: 0, w: 2, h: 2, color: '#3f6d9e', font: 1.5 },
+      { id: '2', label: '2', x: 2, y: 0, w: 2, h: 1, color: '#7a9e7e' },
+      { id: '3', label: '3', x: 2, y: 1, w: 2, h: 1, color: '#7a9e7e' },
+      { id: '4', label: '4', x: 0, y: 2, w: 1, h: 1, color: '#9b7eb8' },
+      { id: '5', label: '5', x: 1, y: 2, w: 1, h: 1, color: '#9b7eb8' },
+      { id: '6', label: '6', x: 0, y: 3, w: 1, h: 2, color: '#5b84ae' },
+      { id: '7', label: '7', x: 1, y: 3, w: 1, h: 2, color: '#5b84ae' },
+      { id: '8', label: '8', x: 2, y: 3, w: 2, h: 1, color: '#c9a227' },
+      { id: '9', label: '9', x: 2, y: 4, w: 2, h: 1, color: '#c9a227' },
+    ],
+    columnTitle: 'コラム：角から角へ ― ダッド・パズル',
+    column: [
+      '箱入り娘の仲間のパズルで、本では「ダッド・パズル」という名で紹介されています。大きな四角の駒を、盤の角 A から対角の角 C まで持っていくのが目的です。同じ大きさの盤・同じ滑らせる約束ごとでも、目的が変わると手順の味わいががらりと変わります。',
+      '本には59手の解が示されています。じつはこのアプリの数え方（同じ駒を続けて動かす間は1手）でコンピュータに調べさせると、最短は29手と分かりました。59手よりずっと短くできるのです。自分のベスト記録で挑戦してみてください。',
+      '出典：『数理パズル』p81（図④）の配置をもとに作りました。',
+    ],
+  },
+};
+const BK = {
+  cfg: null, pos: [], moves: 0, history: [], selected: -1, lastPiece: -2,
+  started: false, solved: false, els: [], cell: 60, hintToken: 0,
+};
+function blockOccupied(ignoreIdx) {
+  const g = new Array(20).fill(-1);
+  BK.cfg.pieces.forEach((p, i) => {
+    if (i === ignoreIdx) return;
+    const [x, y] = BK.pos[i];
+    for (let dy = 0; dy < p.h; dy++) for (let dx = 0; dx < p.w; dx++) g[(y + dy) * 4 + x + dx] = i;
+  });
+  return g;
+}
+function blockCanSlide(i, dx, dy) {
+  const p = BK.cfg.pieces[i];
+  const [x, y] = BK.pos[i];
+  const nx = x + dx, ny = y + dy;
+  if (nx < 0 || ny < 0 || nx + p.w > 4 || ny + p.h > 5) return false;
+  const g = blockOccupied(i);
+  for (let cy = ny; cy < ny + p.h; cy++) for (let cx = nx; cx < nx + p.w; cx++) if (g[cy * 4 + cx] !== -1) return false;
+  return true;
+}
+function blockLayout() {
+  const board = $('blockBoard');
+  const W = Math.min(board.parentElement.clientWidth || 320, 360);
+  BK.cell = Math.floor(W / 4);
+  board.style.width = BK.cell * 4 + 'px';
+  board.style.height = BK.cell * 5 + 'px';
+  BK.cfg.pieces.forEach((p, i) => {
+    const el = BK.els[i]; if (!el) return;
+    const [x, y] = BK.pos[i];
+    el.style.width = p.w * BK.cell - 5 + 'px';
+    el.style.height = p.h * BK.cell - 5 + 'px';
+    el.style.left = x * BK.cell + 2.5 + 'px';
+    el.style.top = y * BK.cell + 2.5 + 'px';
+    el.style.fontSize = BK.cell * 0.34 * (p.font || 1) + 'px';
+  });
+  blockDrawArrows();
+}
+function blockClearArrows() { document.querySelectorAll('#blockBoard .dirbtn').forEach(e => e.remove()); }
+function blockDrawArrows() {
+  blockClearArrows();
+  if (BK.selected < 0 || BK.solved) return;
+  const i = BK.selected, p = BK.cfg.pieces[i], [x, y] = BK.pos[i];
+  const board = $('blockBoard');
+  const dirs = [[0, -1, '↑'], [0, 1, '↓'], [-1, 0, '←'], [1, 0, '→']];
+  for (const [dx, dy, ch] of dirs) {
+    if (!blockCanSlide(i, dx, dy)) continue;
+    const b = document.createElement('button');
+    b.className = 'dirbtn'; b.textContent = ch;
+    const cx = (x + p.w / 2) * BK.cell + dx * (p.w / 2 * BK.cell + 13) - 15;
+    const cy = (y + p.h / 2) * BK.cell + dy * (p.h / 2 * BK.cell + 13) - 15;
+    b.style.left = cx + 'px'; b.style.top = cy + 'px';
+    b.addEventListener('click', ev => { ev.stopPropagation(); blockSlide(i, dx, dy); });
+    board.appendChild(b);
+  }
+}
+function blockRender() {
+  blockLayout();
+  $('blockMoves').textContent = BK.moves;
+  BK.els.forEach((el, i) => el.classList.toggle('selected', i === BK.selected));
+}
+function blockSetup(kind) {
+  BK.cfg = BLOCK_CONFIGS[kind];
+  BK.pos = BK.cfg.pieces.map(p => [p.x, p.y]);
+  BK.moves = 0; BK.history = []; BK.selected = -1; BK.lastPiece = -2;
+  BK.started = false; BK.solved = false; BK.hintToken++;
+  $('blockTitle').textContent = BK.cfg.title;
+  $('blockIntro').textContent = BK.cfg.intro;
+  $('blockCountNote').textContent = BK.cfg.countNote;
+  $('blockTarget').innerHTML = BK.cfg.targetHtml;
+  $('blockColumnTitle').textContent = BK.cfg.columnTitle;
+  $('blockColumn').innerHTML = BK.cfg.column.map(t => '<p>' + t + '</p>').join('');
+  $('blockMsg').textContent = '';
+  $('blockWin').classList.add('hidden');
+  $('blockBest').textContent = bestText(BK.cfg.bestKey);
+  stopTimer(); $('blockTime').textContent = '0:00';
+  const board = $('blockBoard');
+  board.innerHTML = ''; BK.els = [];
+  const zone = document.createElement('div');
+  zone.style.cssText = 'position:absolute;border:2px dashed rgba(179,81,47,.55);border-radius:7px;pointer-events:none;';
+  zone.dataset.zone = '1';
+  board.appendChild(zone);
+  BK.zoneEl = zone;
+  if (BK.cfg.exitLabel) {
+    const ex = document.createElement('div');
+    ex.className = 'exitmark'; ex.textContent = BK.cfg.exitLabel;
+    board.appendChild(ex);
+  }
+  if (BK.cfg.bestKey === 'dad') {
+    const a = document.createElement('div');
+    a.style.cssText = 'position:absolute;left:4px;top:1px;font-size:.8rem;color:#8a7a58;pointer-events:none;';
+    a.textContent = 'A';
+    board.appendChild(a);
+  }
+  BK.cfg.pieces.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'piece'; el.textContent = p.label;
+    el.style.background = p.color;
+    el.addEventListener('click', ev => { ev.stopPropagation(); blockSelect(i); });
+    board.appendChild(el); BK.els.push(el);
+  });
+  blockPositionZone();
+  blockRender();
+}
+function blockPositionZone() {
+  if (!BK.zoneEl || !BK.cfg) return;
+  const z = BK.cfg.zone, cell = BK.cell || 60;
+  BK.zoneEl.style.left = z.x * cell + 2 + 'px';
+  BK.zoneEl.style.top = z.y * cell + 2 + 'px';
+  BK.zoneEl.style.width = z.w * cell - 4 + 'px';
+  BK.zoneEl.style.height = z.h * cell - 4 + 'px';
+}
+function blockSelect(i) {
+  if (BK.solved) return;
+  SoundBox.tap();
+  BK.selected = BK.selected === i ? -1 : i;
+  blockRender();
+}
+function blockSlide(i, dx, dy) {
+  if (BK.solved || !blockCanSlide(i, dx, dy)) { SoundBox.bad(); return; }
+  if (!BK.started) { BK.started = true; startTimer($('blockTime')); }
+  BK.history.push({ pos: BK.pos.map(p => p.slice()), moves: BK.moves, last: BK.lastPiece });
+  if (BK.lastPiece !== i) BK.moves++;
+  BK.lastPiece = i;
+  BK.pos[i] = [BK.pos[i][0] + dx, BK.pos[i][1] + dy];
+  BK.selected = i;
+  SoundBox.slide();
+  blockRender();
+  const gl = BK.cfg.goal;
+  if (BK.pos[gl.piece][0] === gl.x && BK.pos[gl.piece][1] === gl.y) {
+    BK.solved = true; BK.selected = -1;
+    stopTimer();
+    const isBest = saveBest(BK.cfg.bestKey, BK.moves, elapsedSec());
+    $('blockBest').textContent = bestText(BK.cfg.bestKey);
+    $('blockWin').textContent = BK.cfg.winText + '（' + BK.moves + '手・' + fmtTime(elapsedSec()) + (isBest ? ' ― ベスト記録更新！' : '）');
+    $('blockWin').classList.remove('hidden');
+    $('blockWin').classList.remove('fanfare'); void $('blockWin').offsetWidth; $('blockWin').classList.add('fanfare');
+    blockRender();
+    SoundBox.fanfare();
+  }
+}
+$('blockUndo').addEventListener('click', () => {
+  if (!BK.history.length || BK.solved) return;
+  SoundBox.tap(); BK.hintToken++;
+  const h = BK.history.pop();
+  BK.pos = h.pos; BK.moves = h.moves; BK.lastPiece = -2; BK.selected = -1;
+  $('blockMsg').textContent = '';
+  blockRender();
+});
+$('blockRestart').addEventListener('click', () => {
+  if (!BK.cfg) return;
+  SoundBox.tap();
+  blockSetup(BK.cfg.bestKey);
+});
+$('goHakoiri').addEventListener('click', () => { SoundBox.tap(); show('block'); blockSetup('hakoiri'); });
+$('goDad').addEventListener('click', () => { SoundBox.tap(); show('block'); blockSetup('dad'); });
+window.addEventListener('resize', () => {
+  if (!$('screen-block').classList.contains('hidden') && BK.cfg) { blockLayout(); blockPositionZone(); }
+});
+
+/* ---------- 箱入り娘／ダッド：ヒント（全探索・flood 数え方） ---------- */
+function blockStateKey(pos) {
+  const codes = pos.map(([x, y]) => y * 4 + x);
+  for (const g of (BK.cfg.groups || [])) {
+    const sorted = g.map(i => codes[i]).sort((a, b) => a - b);
+    g.forEach((pi, j) => { codes[pi] = sorted[j]; });
+  }
+  return codes.join(',');
+}
+function blockFloodNeighbors(pos) {
+  const cfg = BK.cfg;
+  const out = [];
+  for (let i = 0; i < cfg.pieces.length; i++) {
+    const p = cfg.pieces[i];
+    const blocked = new Array(20).fill(false);
+    cfg.pieces.forEach((q, j) => {
+      if (j === i) return;
+      const [qx, qy] = pos[j];
+      for (let dy = 0; dy < q.h; dy++) for (let dx = 0; dx < q.w; dx++) blocked[(qy + dy) * 4 + qx + dx] = true;
+    });
+    const fits = (x, y) => {
+      if (x < 0 || y < 0 || x + p.w > 4 || y + p.h > 5) return false;
+      for (let dy = 0; dy < p.h; dy++) for (let dx = 0; dx < p.w; dx++) if (blocked[(y + dy) * 4 + x + dx]) return false;
+      return true;
+    };
+    const [sx, sy] = pos[i];
+    const reach = new Set([sx + sy * 4]);
+    const stack = [[sx, sy]];
+    while (stack.length) {
+      const [cx, cy] = stack.pop();
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = cx + dx, ny = cy + dy;
+        if (!reach.has(nx + ny * 4) && fits(nx, ny)) { reach.add(nx + ny * 4); stack.push([nx, ny]); }
+      }
+    }
+    for (const cell of reach) {
+      const nx = cell % 4, ny = Math.floor(cell / 4);
+      if (nx === sx && ny === sy) continue;
+      const ns = pos.map(q => q.slice());
+      ns[i] = [nx, ny];
+      out.push({ pos: ns, piece: i, to: [nx, ny] });
+    }
+  }
+  return out;
+}
+$('blockHint').addEventListener('click', () => {
+  if (!BK.cfg || BK.solved) return;
+  SoundBox.tap();
+  const token = ++BK.hintToken;
+  const gl = BK.cfg.goal;
+  const startPos = BK.pos.map(p => p.slice());
+  const startKey = blockStateKey(startPos);
+  $('blockMsg').textContent = 'ヒントを計算しています…';
+  const parent = new Map([[startKey, null]]);
+  let frontier = [{ pos: startPos, key: startKey }];
+  let found = null, expanded = 0;
+  const step = () => {
+    if (token !== BK.hintToken) return; /* 盤が変わったら中止 */
+    const deadline = Date.now() + 60;
+    while (frontier.length && Date.now() < deadline && !found) {
+      const next = [];
+      for (const node of frontier) {
+        expanded++;
+        for (const nb of blockFloodNeighbors(node.pos)) {
+          const k = blockStateKey(nb.pos);
+          if (parent.has(k)) continue;
+          parent.set(k, { prev: node.key, piece: nb.piece, to: nb.to });
+          if (nb.pos[gl.piece][0] === gl.x && nb.pos[gl.piece][1] === gl.y) { found = k; break; }
+          next.push({ pos: nb.pos, key: k });
+        }
+        if (found) break;
+      }
+      frontier = next;
+      if (expanded > 900000) { frontier = []; break; }
+    }
+    if (found) {
+      /* 最初の一手を復元 */
+      let k = found, first = null;
+      while (parent.get(k)) { first = parent.get(k); k = first.prev; }
+      const piece = BK.cfg.pieces[first.piece];
+      BK.els.forEach(el => el.classList.remove('hinted'));
+      BK.els[first.piece].classList.add('hinted');
+      BK.selected = first.piece;
+      blockRender();
+      BK.els[first.piece].classList.add('hinted');
+      $('blockMsg').textContent = 'ヒント：駒「' + piece.label + '」を動かすのが最短への一手です（赤い枠の駒）。矢印で滑らせてください。';
+      setTimeout(() => { if (BK.els[first.piece]) BK.els[first.piece].classList.remove('hinted'); }, 4000);
+    } else if (frontier.length) {
+      setTimeout(step, 0);
+    } else {
+      $('blockMsg').textContent = 'ヒントを計算しきれませんでした。少し駒を動かしてから、もう一度押してください。';
+    }
+  };
+  setTimeout(step, 10);
+});
+
+/* ================= オシドリの遊び ================= */
+const OSHI_TARGETS = { 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8 };
+const O = {
+  mode: 'pair', n: 5, k: 2, state: [], moves: 0, history: [],
+  selGroup: -1, started: false, solved: false,
+};
+function oshiStartState() {
+  if (O.mode === 'swap') return ['W', 'W', 'W', '_', 'B', 'B', 'B'];
+  const n = O.mode === 'triple' ? 4 : O.n;
+  const k = O.mode === 'triple' ? 3 : 2;
+  const st = [];
+  for (let i = 0; i < n; i++) st.push('B', 'W');
+  for (let i = 0; i < k; i++) st.push('_');
+  return st;
+}
+function oshiBestKey() {
+  if (O.mode === 'swap') return 'oshiSwap';
+  if (O.mode === 'triple') return 'oshiTriple';
+  return 'oshi' + O.n;
+}
+function oshiTarget() {
+  if (O.mode === 'swap') return 15;
+  if (O.mode === 'triple') return 4;
+  return OSHI_TARGETS[O.n];
+}
+function oshiIsGoal(st) {
+  const s = st.filter(c => c !== '_').join('');
+  if (O.mode === 'swap') return st.join('') === 'BBB_WWW';
+  const n = O.mode === 'triple' ? 4 : O.n;
+  return s === 'B'.repeat(n) + 'W'.repeat(n) || s === 'W'.repeat(n) + 'B'.repeat(n);
+}
+function oshiSetup() {
+  O.k = O.mode === 'triple' ? 3 : 2;
+  O.state = oshiStartState();
+  O.moves = 0; O.history = []; O.selGroup = -1; O.started = false; O.solved = false;
+  $('oshiMsg').textContent = '';
+  $('oshiWin').classList.add('hidden');
+  $('oshiBest').textContent = bestText(oshiBestKey());
+  stopTimer(); $('oshiTime').textContent = '0:00';
+  $('oshiPairControls').classList.toggle('hidden', O.mode !== 'pair');
+  $('oshiTargetNote').textContent = O.mode === 'pair' ? '（最短は ' + OSHI_TARGETS[O.n] + ' 手です）' : '';
+  $('oshiIntro').textContent =
+    O.mode === 'pair' ? '石をタップすると、動かせるペアが金色の枠で選ばれます。そのまま、もう一度タップするとペアが空きへ移ります。動かし方はこれだけです。黒は黒、白は白にまとめれば完成です。' :
+    O.mode === 'triple' ? '変形ルール：3個ずつ移します。黒白4個ずつ・空き3マス。ペアの選び方は同じです。最短は4手です。' :
+    '変形ルール：入れかえです。白い石は右へだけ、黒い石は左へだけ進めます。タップすると、隣の空きへ滑るか、異色の石を1個跳び越して先の空きへ入ります。白と黒の場所が入れかわり、空きが真ん中に戻れば完成。最短は15手です。';
+  const n = O.mode === 'triple' ? 4 : O.n;
+  $('oshiGoalFig').textContent = O.mode === 'swap'
+    ? '完成形： ●●● （空き） ○○○'
+    : '完成形： ' + '●'.repeat(n) + ' と ' + '○'.repeat(n) + ' が、それぞれひとかたまり（空きの位置は自由）';
+  oshiRender();
+}
+function oshiRender() {
+  const strip = $('oshiStrip');
+  strip.innerHTML = '';
+  const count = O.state.length;
+  const wrapW = Math.min(strip.parentElement.clientWidth || 340, 536);
+  const gap = 4;
+  const cw = Math.max(24, Math.floor((wrapW - gap * (count - 1)) / count));
+  O.state.forEach((c, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.style.width = cw + 'px';
+    cell.style.height = Math.round(cw * 1.25) + 'px';
+    if (O.selGroup >= 0 && idx >= O.selGroup && idx < O.selGroup + O.k) cell.classList.add('grp');
+    if (c !== '_') {
+      const st = document.createElement('div');
+      st.className = 'stone ' + (c === 'B' ? 'black' : 'white');
+      st.style.width = cw - 7 + 'px'; st.style.height = cw - 7 + 'px';
+      cell.appendChild(st);
+    }
+    cell.addEventListener('click', () => oshiTap(idx));
+    strip.appendChild(cell);
+  });
+  $('oshiMoves').textContent = O.moves;
+}
+function oshiCandidates(idx) {
+  const out = [];
+  for (let s = Math.max(0, idx - O.k + 1); s <= idx && s + O.k <= O.state.length; s++) {
+    let ok = true;
+    for (let j = s; j < s + O.k; j++) if (O.state[j] === '_') { ok = false; break; }
+    if (ok) out.push(s);
+  }
+  return out;
+}
+function oshiTap(idx) {
+  if (O.solved) return;
+  if (O.mode === 'swap') { oshiSwapTap(idx); return; }
+  if (O.state[idx] === '_') { O.selGroup = -1; oshiRender(); return; }
+  if (O.selGroup >= 0 && idx >= O.selGroup && idx < O.selGroup + O.k) {
+    oshiMoveGroup(O.selGroup);
+    return;
+  }
+  const cand = oshiCandidates(idx);
+  if (!cand.length) {
+    SoundBox.bad();
+    $('oshiMsg').textContent = 'その石は、いまは' + O.k + '個のペアで動かせません。';
+    return;
+  }
+  SoundBox.tap();
+  O.selGroup = cand.includes(idx) ? idx : cand[0];
+  $('oshiMsg').textContent = 'ペアが選ばれました。もう一度タップすると空きへ移ります。';
+  oshiRender();
+}
+function oshiMoveGroup(s) {
+  /* 空きブロック（k 個続き）の位置を探し、グループと入れかえる */
+  let b = -1;
+  for (let i = 0; i + O.k <= O.state.length; i++) {
+    let ok = true;
+    for (let j = i; j < i + O.k; j++) if (O.state[j] !== '_') { ok = false; break; }
+    if (ok) { b = i; break; }
+  }
+  if (b < 0 || b === s) return;
+  if (!O.started) { O.started = true; startTimer($('oshiTime')); }
+  O.history.push({ state: O.state.slice(), moves: O.moves });
+  const ns = O.state.slice();
+  for (let j = 0; j < O.k; j++) { ns[b + j] = O.state[s + j]; ns[s + j] = '_'; }
+  O.state = ns;
+  O.moves++;
+  O.selGroup = -1;
+  $('oshiMsg').textContent = '';
+  SoundBox.slide();
+  oshiRender();
+  oshiCheckGoal();
+}
+function oshiSwapTap(idx) {
+  const c = O.state[idx];
+  if (c === '_') return;
+  const st = O.state;
+  let to = -1;
+  if (c === 'W') {
+    if (st[idx + 1] === '_') to = idx + 1;
+    else if (st[idx + 1] === 'B' && st[idx + 2] === '_') to = idx + 2;
+  } else {
+    if (st[idx - 1] === '_') to = idx - 1;
+    else if (st[idx - 1] === 'W' && st[idx - 2] === '_') to = idx - 2;
+  }
+  if (to < 0) {
+    SoundBox.bad();
+    $('oshiMsg').textContent = c === 'W' ? '白い石は右へだけ進めます。いまは進めません。' : '黒い石は左へだけ進めます。いまは進めません。';
+    return;
+  }
+  if (!O.started) { O.started = true; startTimer($('oshiTime')); }
+  O.history.push({ state: O.state.slice(), moves: O.moves });
+  O.state[to] = c; O.state[idx] = '_';
+  O.moves++;
+  $('oshiMsg').textContent = '';
+  SoundBox.slide();
+  oshiRender();
+  oshiCheckGoal();
+}
+function oshiCheckGoal() {
+  if (!oshiIsGoal(O.state)) return;
+  O.solved = true;
+  stopTimer();
+  const isBest = saveBest(oshiBestKey(), O.moves, elapsedSec());
+  $('oshiBest').textContent = bestText(oshiBestKey());
+  const t = oshiTarget();
+  $('oshiWin').textContent = '🎉 そろいました！ ' + O.moves + '手・' + fmtTime(elapsedSec()) +
+    (O.moves === t ? ' ― 最短手数で解けました！' : '（最短は ' + t + ' 手）') + (isBest ? ' ベスト記録更新！' : '');
+  $('oshiWin').classList.remove('hidden');
+  $('oshiWin').classList.remove('fanfare'); void $('oshiWin').offsetWidth; $('oshiWin').classList.add('fanfare');
+  SoundBox.fanfare();
+}
+$('oshiUndo').addEventListener('click', () => {
+  if (!O.history.length || O.solved) return;
+  SoundBox.tap();
+  const h = O.history.pop();
+  O.state = h.state; O.moves = h.moves; O.selGroup = -1;
+  $('oshiMsg').textContent = '';
+  oshiRender();
+});
+$('oshiRestart').addEventListener('click', () => { SoundBox.tap(); oshiSetup(); });
+$('oshiPairs').addEventListener('change', e => { O.n = Number(e.target.value); SoundBox.tap(); oshiSetup(); });
+function oshiSetMode(mode) {
+  O.mode = mode;
+  ['Pair', 'Triple', 'Swap'].forEach(m => $('oshiMode' + m).classList.toggle('sel', O.mode === m.toLowerCase()));
+  oshiSetup();
+}
+$('oshiModePair').addEventListener('click', () => { SoundBox.tap(); oshiSetMode('pair'); });
+$('oshiModeTriple').addEventListener('click', () => { SoundBox.tap(); oshiSetMode('triple'); });
+$('oshiModeSwap').addEventListener('click', () => { SoundBox.tap(); oshiSetMode('swap'); });
+$('goOshidori').addEventListener('click', () => { SoundBox.tap(); show('oshidori'); oshiSetup(); });
+window.addEventListener('resize', () => { if (!$('screen-oshidori').classList.contains('hidden')) oshiRender(); });
+
+/* ================= ペーパークラフトキット ================= */
+const KIT = { canvases: [], pdfBlob: null, pdfFile: null, busy: false };
+const PW = 2480, PH = 3508; /* A4 300dpi */
+function kitBase(title, sub) {
+  const cv = document.createElement('canvas');
+  cv.width = PW; cv.height = PH;
+  const c = cv.getContext('2d');
+  c.fillStyle = '#ffffff'; c.fillRect(0, 0, PW, PH);
+  c.fillStyle = '#2b2620';
+  c.font = 'bold 92px ' + SERIF;
+  c.textAlign = 'center';
+  c.fillText(title, PW / 2, 150);
+  c.font = '44px ' + SERIF;
+  c.fillStyle = '#6d6353';
+  c.fillText(sub, PW / 2, 225);
+  /* 5cm 確認線（300dpi：5cm = 591px） */
+  c.strokeStyle = '#b3512f'; c.lineWidth = 5;
+  c.beginPath(); c.moveTo(120, PH - 190); c.lineTo(120 + 591, PH - 190); c.stroke();
+  c.fillStyle = '#b3512f'; c.font = '40px ' + SERIF; c.textAlign = 'left';
+  c.fillText('この線が 5cm になっていますか？（印刷後に定規で確認）', 120, PH - 110);
+  c.fillStyle = '#2b2620';
+  return [cv, c];
+}
+function kitCutRect(c, x, y, w, h, fill, label, fontPx) {
+  c.fillStyle = fill; c.fillRect(x, y, w, h);
+  c.strokeStyle = '#333'; c.lineWidth = 3; c.strokeRect(x, y, w, h);
+  c.setLineDash([16, 12]); c.strokeStyle = '#999'; c.lineWidth = 2;
+  c.strokeRect(x - 9, y - 9, w + 18, h + 18);
+  c.setLineDash([]);
+  if (label) {
+    c.fillStyle = '#fff'; c.font = 'bold ' + (fontPx || 90) + 'px ' + SERIF;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.shadowColor = 'rgba(0,0,0,.35)'; c.shadowBlur = 4;
+    c.fillText(label, x + w / 2, y + h / 2);
+    c.shadowBlur = 0; c.textBaseline = 'alphabetic';
+  }
+}
+function kitSheetFifteen() {
+  const [cv, c] = kitBase('15パズル ― 盤とタイル', '盤にタイルを置いて滑らせます。タイルは切り取ってください。');
+  const cell = 300, bx = (PW - cell * 4) / 2, by = 330;
+  c.strokeStyle = '#8a7a58'; c.lineWidth = 10; c.strokeRect(bx, by, cell * 4, cell * 4);
+  c.lineWidth = 3; c.strokeStyle = '#bbb';
+  for (let i = 1; i < 4; i++) {
+    c.beginPath(); c.moveTo(bx + i * cell, by); c.lineTo(bx + i * cell, by + cell * 4); c.stroke();
+    c.beginPath(); c.moveTo(bx, by + i * cell); c.lineTo(bx + cell * 4, by + i * cell); c.stroke();
+  }
+  c.fillStyle = '#6d6353'; c.font = '46px ' + SERIF; c.textAlign = 'center';
+  c.fillText('タイル（切り取り） ― 空きマス用に無地が1枚あります', PW / 2, by + cell * 4 + 110);
+  const colors = '#efe3c8';
+  for (let v = 0; v < 16; v++) {
+    const tx = bx + (v % 4) * cell, ty = by + cell * 4 + 170 + Math.floor(v / 4) * (cell + 26);
+    if (v < 15) {
+      kitCutRect(c, tx + 8, ty + 8, cell - 16, cell - 16, '#d9b878', String(v + 1), 120);
+      c.fillStyle = '#2b2620';
+    } else {
+      c.setLineDash([14, 10]); c.strokeStyle = '#999'; c.lineWidth = 3;
+      c.strokeRect(tx + 8, ty + 8, cell - 16, cell - 16); c.setLineDash([]);
+    }
+  }
+  return cv;
+}
+function kitSheetHakoiri() {
+  const [cv, c] = kitBase('箱入り娘 ― 盤と駒', '出口は下の中央です。駒は切り取って、盤の上で滑らせます。');
+  const cell = 300, bx = (PW - cell * 4) / 2, by = 320;
+  c.strokeStyle = '#8a7a58'; c.lineWidth = 10; c.strokeRect(bx, by, cell * 4, cell * 5);
+  c.lineWidth = 3; c.strokeStyle = '#bbb';
+  for (let i = 1; i < 4; i++) { c.beginPath(); c.moveTo(bx + i * cell, by); c.lineTo(bx + i * cell, by + cell * 5); c.stroke(); }
+  for (let i = 1; i < 5; i++) { c.beginPath(); c.moveTo(bx, by + i * cell); c.lineTo(bx + cell * 4, by + i * cell); c.stroke(); }
+  c.fillStyle = '#b3512f'; c.font = 'bold 54px ' + SERIF; c.textAlign = 'center';
+  c.fillText('⬇ 出口', bx + cell * 2, by + cell * 5 + 78);
+  c.fillStyle = '#6d6353'; c.font = '46px ' + SERIF;
+  c.fillText('駒（切り取り） ― はじめの並びは下の見本のとおり', PW / 2, by + cell * 5 + 180);
+  const py = by + cell * 5 + 240;
+  const cols = { M: '#c0453a', v: '#7a9e7e', v2: '#5b84ae', h: '#c9a227', s: '#9b7eb8', s2: '#b08954' };
+  /* 1段目：娘＋縦4＋小2 */
+  let x = bx;
+  kitCutRect(c, x + 8, py + 8, cell * 2 - 16, cell * 2 - 16, cols.M, '娘', 150); x += cell * 2;
+  kitCutRect(c, x + 8, py + 8, cell - 16, cell * 2 - 16, cols.v, '1', 110); x += cell;
+  kitCutRect(c, x + 8, py + 8, cell - 16, cell * 2 - 16, cols.v, '2', 110); x += cell;
+  let x2 = bx;
+  const py2 = py + cell * 2 + 30;
+  kitCutRect(c, x2 + 8, py2 + 8, cell - 16, cell * 2 - 16, cols.v2, '3', 110); x2 += cell;
+  kitCutRect(c, x2 + 8, py2 + 8, cell * 2 - 16, cell - 16, cols.h, '4', 110);
+  kitCutRect(c, x2 + 8, py2 + cell + 8, cell - 16, cell - 16, cols.s, '6', 100);
+  kitCutRect(c, x2 + cell + 8, py2 + cell + 8, cell - 16, cell - 16, cols.s, '7', 100);
+  x2 += cell * 2;
+  kitCutRect(c, x2 + 8, py2 + 8, cell - 16, cell * 2 - 16, cols.v2, '5', 110); x2 += cell;
+  kitCutRect(c, x2 + 8, py2 + 8, cell - 16, cell - 16, cols.s2, '8', 100);
+  kitCutRect(c, x2 + 8, py2 + cell + 8, cell - 16, cell - 16, cols.s2, '9', 100);
+  /* 見本（初期配置の小さい図） */
+  const my = py2 + cell * 2 + 90;
+  c.fillStyle = '#6d6353'; c.font = '44px ' + SERIF; c.textAlign = 'left';
+  c.fillText('はじめの並び（見本）', bx, my);
+  const mc = 62, mx = bx, moy = my + 26;
+  const mini = [
+    ['1', 0, 0, 1, 2, cols.v], ['娘', 1, 0, 2, 2, cols.M], ['2', 3, 0, 1, 2, cols.v],
+    ['3', 0, 2, 1, 2, cols.v2], ['4', 1, 2, 2, 1, cols.h], ['5', 3, 2, 1, 2, cols.v2],
+    ['6', 1, 3, 1, 1, cols.s], ['7', 2, 3, 1, 1, cols.s], ['8', 0, 4, 1, 1, cols.s2], ['9', 3, 4, 1, 1, cols.s2],
+  ];
+  c.strokeStyle = '#8a7a58'; c.lineWidth = 4; c.strokeRect(mx, moy, mc * 4, mc * 5);
+  for (const [label, px2, py3, w, h, col] of mini) {
+    c.fillStyle = col; c.fillRect(mx + px2 * mc + 2, moy + py3 * mc + 2, w * mc - 4, h * mc - 4);
+    c.fillStyle = '#fff'; c.font = 'bold 30px ' + SERIF; c.textAlign = 'center';
+    c.fillText(label, mx + (px2 + w / 2) * mc, moy + (py3 + h / 2) * mc + 11);
+  }
+  c.fillStyle = '#2b2620'; c.font = '44px ' + SERIF; c.textAlign = 'left';
+  c.fillText('最短は81手。あせらず、じっくりどうぞ。', mx + mc * 4 + 90, moy + 130);
+  return cv;
+}
+function kitSheetOshidori() {
+  const [cv, c] = kitBase('オシドリの遊び ― 盤と石', '石は切り取って、一列の盤に並べます。黒8個・白8個（8組まで遊べます）。');
+  const cells = 18, cell = 128, bx = (PW - cell * cells) / 2, by = 420, bh = 210;
+  c.strokeStyle = '#8a7a58'; c.lineWidth = 9; c.strokeRect(bx, by, cell * cells, bh);
+  c.lineWidth = 3; c.strokeStyle = '#bbb';
+  for (let i = 1; i < cells; i++) { c.beginPath(); c.moveTo(bx + i * cell, by); c.lineTo(bx + i * cell, by + bh); c.stroke(); }
+  c.fillStyle = '#6d6353'; c.font = '44px ' + SERIF; c.textAlign = 'center';
+  c.fillText('並べ方： 黒 白 黒 白 … と交互に置き、右端の2マスを空けて始めます', PW / 2, by + bh + 100);
+  const disc = (x, y, r, black, label) => {
+    c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2);
+    c.fillStyle = black ? '#232326' : '#fdfcf7'; c.fill();
+    c.strokeStyle = '#333'; c.lineWidth = 4; c.stroke();
+    c.setLineDash([14, 10]); c.strokeStyle = '#999'; c.lineWidth = 2;
+    c.beginPath(); c.arc(x, y, r + 10, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
+    if (label) { c.fillStyle = black ? '#fff' : '#6d6353'; c.font = 'bold 44px ' + SERIF; c.textAlign = 'center'; c.fillText(label, x, y + 15); }
+  };
+  const r = 105, sy = by + bh + 330;
+  c.fillStyle = '#2b2620'; c.font = '48px ' + SERIF; c.textAlign = 'left';
+  c.fillText('黒い石', bx, sy - 150);
+  for (let i = 0; i < 8; i++) disc(bx + r + 12 + i * (2 * r + 42), sy, r, true, '');
+  const sy2 = sy + 2 * r + 130;
+  c.fillStyle = '#2b2620'; c.font = '48px ' + SERIF;
+  c.fillText('白い石', bx, sy2 - 150);
+  for (let i = 0; i < 8; i++) disc(bx + r + 12 + i * (2 * r + 42), sy2, r, false, '');
+  c.fillStyle = '#6d6353'; c.font = '44px ' + SERIF; c.textAlign = 'center';
+  c.fillText('完成形： 黒がひとかたまり、白がひとかたまり。最短手数は組数と同じです。', PW / 2, sy2 + r + 130);
+  return cv;
+}
+function kitSheetRecord() {
+  const [cv, c] = kitBase('挑戦記録シート', '解けた記録を書き込みましょう。最短の目安：箱入り娘 81手 ／ オシドリ 組数と同じ ／ 入れかえ 15手');
+  c.textAlign = 'left'; c.fillStyle = '#2b2620'; c.font = '50px ' + SERIF;
+  c.fillText('名前：', 140, 360);
+  c.strokeStyle = '#888'; c.lineWidth = 3;
+  c.beginPath(); c.moveTo(320, 368); c.lineTo(1300, 368); c.stroke();
+  const games = [
+    ['箱入り娘', '最短81手'], ['15パズル', '―'], ['オシドリの遊び', '組数と同じ手数'], ['ダッド・パズル', '本では59手の解'],
+  ];
+  let y = 500;
+  for (const [name, memo] of games) {
+    c.fillStyle = '#2e7d5b'; c.font = 'bold 56px ' + SERIF; c.textAlign = 'left';
+    c.fillText(name, 140, y + 10);
+    c.fillStyle = '#6d6353'; c.font = '40px ' + SERIF;
+    c.fillText('（目安：' + memo + '）', 760, y + 10);
+    y += 60;
+    const colsX = [140, 620, 1020, 1420, 2340];
+    const heads = ['月／日', '手数', '時間', 'ひとことメモ'];
+    c.font = '40px ' + SERIF; c.fillStyle = '#2b2620';
+    heads.forEach((h, i) => c.fillText(h, colsX[i] + 14, y + 48));
+    c.strokeStyle = '#888'; c.lineWidth = 3; c.strokeRect(140, y, 2200, 66);
+    for (let i = 1; i < 4; i++) { c.beginPath(); c.moveTo(colsX[i], y); c.lineTo(colsX[i], y + 66); c.stroke(); }
+    y += 66;
+    for (let r2 = 0; r2 < 4; r2++) {
+      c.strokeStyle = '#bbb'; c.lineWidth = 2; c.strokeRect(140, y, 2200, 78);
+      for (let i = 1; i < 4; i++) { c.beginPath(); c.moveTo(colsX[i], y); c.lineTo(colsX[i], y + 78); c.stroke(); }
+      y += 78;
+    }
+    y += 64;
+  }
+  return cv;
+}
+function kitJpeg(cv) { return cv.toDataURL('image/jpeg', 0.92); }
+function kitPdfBlob(canvases) {
+  const enc = new TextEncoder();
+  const chunks = [];
+  let offset = 0;
+  const push = data => { chunks.push(data); offset += typeof data === 'string' ? enc.encode(data).length : data.length; };
+  const pageW = 595.28, pageH = 841.89;
+  const n = canvases.length;
+  const objNums = { catalog: 1, pages: 2 };
+  let nextObj = 3;
+  const pageObjs = [];
+  for (let i = 0; i < n; i++) {
+    pageObjs.push({ page: nextObj, content: nextObj + 1, image: nextObj + 2 });
+    nextObj += 3;
+  }
+  const totalObjs = nextObj - 1;
+  const offsets = new Array(totalObjs + 1).fill(0);
+  const obj = (num, body) => { offsets[num] = offset; push(num + ' 0 obj\n' + body + '\nendobj\n'); };
+  push('%PDF-1.4\n');
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, '<< /Type /Pages /Kids [' + pageObjs.map(p => p.page + ' 0 R').join(' ') + '] /Count ' + n + ' >>');
+  canvases.forEach((cv, i) => {
+    const { page, content, image } = pageObjs[i];
+    const dataUrl = kitJpeg(cv);
+    const b64 = dataUrl.split(',')[1];
+    const binStr = atob(b64);
+    const bytes = new Uint8Array(binStr.length);
+    for (let j = 0; j < binStr.length; j++) bytes[j] = binStr.charCodeAt(j);
+    obj(page, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pageW + ' ' + pageH + '] /Resources << /XObject << /Im0 ' + image + ' 0 R >> >> /Contents ' + content + ' 0 R >>');
+    const stream = 'q ' + pageW + ' 0 0 ' + pageH + ' 0 0 cm /Im0 Do Q';
+    obj(content, '<< /Length ' + stream.length + ' >>\nstream\n' + stream + '\nendstream');
+    offsets[image] = offset;
+    push(image + ' 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + cv.width + ' /Height ' + cv.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + bytes.length + ' >>\nstream\n');
+    push(bytes);
+    push('\nendstream\nendobj\n');
+  });
+  const xrefPos = offset;
+  let xref = 'xref\n0 ' + (totalObjs + 1) + '\n0000000000 65535 f \n';
+  for (let i = 1; i <= totalObjs; i++) xref += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  push(xref + 'trailer\n<< /Size ' + (totalObjs + 1) + ' /Root 1 0 R >>\nstartxref\n' + xrefPos + '\n%%EOF');
+  const parts = chunks.map(ch => typeof ch === 'string' ? enc.encode(ch) : ch);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+async function kitGenerate() {
+  if (KIT.busy) return;
+  KIT.busy = true;
+  $('kitMsg').textContent = 'シートを作っています…';
+  const tick = () => new Promise(r => setTimeout(r, 30));
+  try {
+    const makers = [
+      ['① 15パズル（盤とタイル）', kitSheetFifteen],
+      ['② 箱入り娘（盤と駒）', kitSheetHakoiri],
+      ['③ オシドリの遊び（盤と石）', kitSheetOshidori],
+      ['④ 挑戦記録シート', kitSheetRecord],
+    ];
+    KIT.canvases = [];
+    const box = $('kitSheets');
+    box.innerHTML = '';
+    for (const [label, make] of makers) {
+      await tick();
+      const cv = make();
+      KIT.canvases.push(cv);
+      const div = document.createElement('div');
+      div.className = 'sheetbox';
+      const cap = document.createElement('p');
+      cap.className = 'note'; cap.textContent = label + '（長押しで写真に保存できます）';
+      const img = document.createElement('img');
+      img.alt = label;
+      img.src = cv.toDataURL('image/png');
+      div.appendChild(cap); div.appendChild(img);
+      box.appendChild(div);
+    }
+    await tick();
+    KIT.pdfBlob = kitPdfBlob(KIT.canvases);
+    KIT.pdfFile = new File([KIT.pdfBlob], 'slide-puzzle-kit.pdf', { type: 'application/pdf' });
+    $('kitOpenPdf').href = URL.createObjectURL(KIT.pdfBlob);
+    $('kitReady').classList.remove('hidden');
+    $('kitMsg').textContent = 'できました。下の画像（長押し保存）か、PDFから印刷してください。';
+    SoundBox.fanfare();
+  } catch (e) {
+    $('kitMsg').textContent = 'シートの作成に失敗しました。もう一度押してください。';
+  }
+  KIT.busy = false;
+}
+$('kitMake').addEventListener('click', () => { SoundBox.tap(); kitGenerate(); });
+$('kitShare').addEventListener('click', async () => {
+  SoundBox.tap();
+  if (!KIT.pdfFile) return;
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [KIT.pdfFile] })) {
+      await navigator.share({ files: [KIT.pdfFile] });
+    } else if (navigator.share) {
+      await navigator.share({ title: 'スライドパズル工房 ペーパークラフトキット', url: $('kitOpenPdf').href });
+    } else {
+      $('kitMsg').textContent = 'この環境では共有が使えません。「PDFを開く」か、画像の長押し保存をお使いください。';
+    }
+  } catch (e) { /* キャンセル時は何もしない */ }
+});
+$('goKit').addEventListener('click', () => { SoundBox.tap(); show('kit'); });
+</script>
+</body>
+</html>
